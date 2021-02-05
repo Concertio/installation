@@ -1,0 +1,19 @@
+global_settings:
+  filter_processes_threshold: 0.0              # single coarse bucket
+  min_baseline_samples: 1
+  min_samples_per_config: 1
+  sampling_interval: 5s
+  max_invalid_samples_per_config: 5
+  model_max_levels: 2
+  bucket_grouping_strategy_settings:
+    cluster:
+      trigger_clustering_threshold: 300
+  metrics_csv_filename: metrics.csv
+
+domain:
+  common:
+    include_metrics: [.*]
+    target: performance:max
+
+import:
+  optimizer.runtime:
