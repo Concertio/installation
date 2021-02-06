@@ -57,15 +57,20 @@ spec:
           #   httpGet:
           #     path: /
           #     port: http
+          volumeMounts:
+            - name: knobs-config-volume
+              mountPath: /root/optimizer/knobs.yaml
+              subPath: knobs.yaml
+              readOnly: true
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           {{- if .Values.licenseKey -}}
           env:
-           - name: OPTIMIZER_LICENSE_KEY
-             valueFrom:
-               secretKeyRef:
-                 name: concertio-secrets
-                 key: OPTIMIZER_LICENSE_KEY
+            - name: OPTIMIZER_LICENSE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: concertio-secrets
+                  key: OPTIMIZER_LICENSE_KEY
           {{- end -}}
       {{- with .Values.nodeSelector }}
       nodeSelector:
@@ -79,3 +84,8 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      volumes:
+        - name: knobs-config-volume
+          configMap:
+            name: knobs-configmap
+            defaultMode: 0640
