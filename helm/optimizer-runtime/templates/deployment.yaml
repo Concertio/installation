@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  #name: {{ include "optimizer-runtime.fullname" . }}
+  name: {{ .Chart.Name }}
+  labels:
+    tier: "management"
+    app: {{ .Chart.Name }}
+    {{- include "optimizer-runtime.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      name: {{ .Chart.Name }}
+      {{- include "optimizer-runtime.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+        # for the package to upgrade whenever knobs.yaml has changed:
+        checksum/config: {{ include (print $.Template.BasePath "/knobs-configmap.yaml") . | sha256sum }}
+      {{- end }}
+      labels:
+        name: {{ .Chart.Name }}
+        {{- include "optimizer-runtime.selectorLabels" . | nindent 8 }}
+    spec:
+      # as a DaemonSet we need privileges to deal with OS knobs like sysctls, accelerators communication etc
+      hostNetwork: true
+      hostPID: true
+      hostIPC: true
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "optimizer-runtime.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          # by default runtime is listenning on localhost, but for future support...
+          ports:
+            - name: http
+              containerPort: 8421
+              protocol: TCP
+            - name: nats
+              containerPort: 47302
+              protocol: TCP
+          # livenessProbe:
+          #   httpGet:
+          #     path: /
+          #     port: http
+          # readinessProbe:
+          #   httpGet:
+          #     path: /
+          #     port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- if .Values.licenseKey -}}
+          env:
+           - name: OPTIMIZER_LICENSE_KEY
+             valueFrom:
+               secretKeyRef:
+                 name: concertio-secrets
+                 key: OPTIMIZER_LICENSE_KEY
+          {{- end -}}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

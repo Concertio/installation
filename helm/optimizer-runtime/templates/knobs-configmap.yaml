@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: knobs-configmap
+data:
+  knobs.yaml: |
+    global_settings:
+      filter_processes_threshold: 0.0              # single coarse bucket
+      min_samples_per_config: {{ .Values.minSamplesPerConfig }}
+      sampling_interval: 5s
+      max_invalid_samples_per_config: 5
+      model_max_levels: 2
+      bucket_grouping_strategy_settings:
+        cluster:
+          trigger_clustering_threshold: 300
+      metrics_csv_filename: {{ .Values.metricsCsvFile }}
+    domain:
+      common:
+        include_metrics: [.*]
+        target: {{ .Values.targetMetric | quote }}
+    import:
+      optimizer.runtime:
