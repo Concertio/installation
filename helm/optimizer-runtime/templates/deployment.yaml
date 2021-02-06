@@ -47,7 +47,7 @@ spec:
               containerPort: 8421
               protocol: TCP
             - name: nats
-              containerPort: 47302
+              containerPort: 4222
               protocol: TCP
           # livenessProbe:
           #   httpGet:
