@@ -1,7 +1,6 @@
 global_settings:
   filter_processes_threshold: 0.0              # single coarse bucket
-  min_baseline_samples: 1
-  min_samples_per_config: 1
+  min_samples_per_config: 7
   sampling_interval: 5s
   max_invalid_samples_per_config: 5
   model_max_levels: 2
